@@ -1,0 +1,41 @@
+(1) If I try to run an md on an address that is not a physical address, I will get a page fault on the
+    SAPC. After some research, I found that this error indicates an exception raised by the memory
+    management unit when a process accesses a memory page without proper preparations. If I try the same 
+    on the CS server, I will get a segmentation fault. This is because the CS server is a protected environment 
+    and does not allow manipulation of any memory address. If I use md in the SAPC on an address that's part 
+    of the tutor code, I will get the value stored at that address.
+
+(2) The makefile puts the symbol table in the syms for the SAPC and the usyms for the Linux server. 
+    Reading the address for xyz ("001023c0"), I get "06 00 00....," meaning that the address "001023c0" is 
+    storing the value 6. This is correct, as per the line "char xyz = 6;". If I md on the memory address of 
+    pxyz ("0010241c"), I will get "c0 23 10 00 00....," which is correct based on the line "char *pxyz = &xyz;" since 
+    pxyz is a pointer to the address of xyz. Due to the little-endian representation of a 32-bit value, we need to 
+    read it backward as "00 10 23 c0," which is exactly the memory address of xyz as expected.
+
+    When I md on the memory address of cmds, I get "F4 1C 10 00 08 04...." To look at the very first pointer, I
+    need to md on the address represented by the first 4 bytes, in this case, "00101CF4". Now, if I md on that, I will
+    get that the first element of the array is a pointer to md.Memory display. I noted that it prints out md.Memory displa 
+    without the final 'y', but after some research, this is normal as I'm only printing 16 characters. If I try to change 
+    the stop command from 's' to 'x' while the program is running, I need to md into the correct memory address, in 
+    this case, "00101d46," which displays "73 00 53 74 6F 70 00...". '73' represents the letter 's' that we want to 
+    change to 'x'. To do so, I will use memory_set on "00101d46" to set it to '78', representing the letter 'x'. 
+    Now, the tutor will expect to get the letter 'x' to stop, and the help function will also show that.
+
+(3) By reading the nm output for SAPC, I found the code to reside from address "00100100" to "00101c53". 
+    Data, on the other hand, resides at address "0010246c". On LINUX, the code resides at addresses "08049205,
+    080492e2, 08049182, 08049209, 0804938a, 080494dd, 080496e1, 08049080, 08049386, 080493a2, 080496f0, 
+    08049569".
+
+(4) If I try to change the code to make the tutor crash, I get different results. On SAPC, the tutor doesn't crash 
+    but instead stops working and throws errors and exceptions. On LINUX, I get a segmentation fault, and the tutor quits.
+
+(5) On the LINUX server, I can run the gdb debugger to find the program stack. I first called gdb with "tutor".
+    Afterward, I set a breakpoint at the main function. Then, I looked at the stack pointer with the command "i reg $esp" and
+    found the memory address to be "0xffffd8ec". Inside the SAPC, I can more simply run the "rd" command to see info on the
+    registers. I found ESP=0005788c. Running the "rd" command also showed me other data such as the EBP and EIP.
+
+(6) Overall, this project, even if it was very challenging, was useful to understand how a program and computer work at 
+    lower levels. I think this will be useful for when we start assembly coding. I played around with the code a lot and 
+    learned different things other than just what was on the project. For example, I set up a way to edit the code on VS Code 
+    through an SSH connection. I also implemented an SSH key so that I won't have to log in with a password on the CS server every time. 
+    These were things that were not directly connected with MP1 but still very interesting to learn.
